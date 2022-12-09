@@ -1,7 +1,8 @@
 // JSON 
 // JavaScript Object Notation(표기법)
 
-// 1. Object to JSON -> stringify(obj)
+// 1. Object to JSON -> stringify(obj) 
+// json은 string이다.
 let json = JSON.stringify(true);
 console.log(json);
 

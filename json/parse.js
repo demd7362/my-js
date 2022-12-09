@@ -3,6 +3,7 @@
 
 // 2. JSON to object -> parse(JSON)
 
+
 let json = {
     name : '정지훈',
     age : 28,

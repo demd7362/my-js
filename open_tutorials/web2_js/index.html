@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- 컨트롤 쉬프트 L = 전체 선택 -->
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script>
+        function bodySetColor(color){
+            document.querySelector('body').style.color = color;
+        }
+        function bodySetBGColor(color){
+            document.querySelector('body').style.backgroundColor = color;
+        }
+        function change(obj) {
+            
+            if (obj.value == 'night') {
+                bodySetBGColor('white');
+                bodySetColor('black');
+                obj.value = 'day';
+                linksSetColor('blue');
+                
+            } else {
+                bodySetBGColor('black');
+                bodySetColor('white');
+                obj.value = 'night';
+
+                linksSetColor('powderblue');
+            }
+        }
+        function linksSetColor(color){
+            let aList = document.querySelectorAll('a');
+                for (a of aList) {
+                    a.style.color = color;
+                }
+        }
+    </script>
+</head>
+<body>
+    <input type="button" value="day" onclick="change(this)">
+    <a>JavaScript</a>
+    <a>JavaScript</a>
+    <a>JavaScript</a>
+    <a>JavaScript</a>
+    <a>JavaScript</a>
+    <a>JavaScript</a>
+    <a>JavaScript</a>
+</body>
+
+</html>
