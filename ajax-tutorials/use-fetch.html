@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <script>
+        fetch('/ajax-tutorials/test.json')
+            .then((response) => {
+                if(!response.ok){
+                    throw new Error('400 or 500 error')
+                }
+                return response.json()
+            }) // parsing
+            .then((result) => {
+                console.log(result)
+            }) // parsing한 결과 출력
+            .catch(() => {
+                console.log('error')
+            }) // 에러 캐치
+    </script>
+</body>
+
+</html>

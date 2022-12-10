@@ -7,34 +7,41 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <script>
-        function bodySetColor(color){
-            document.querySelector('body').style.color = color;
-        }
-        function bodySetBGColor(color){
-            document.querySelector('body').style.backgroundColor = color;
-        }
-        function change(obj) {
-            
-            if (obj.value == 'night') {
-                bodySetBGColor('white');
-                bodySetColor('black');
-                obj.value = 'day';
-                linksSetColor('blue');
-                
-            } else {
-                bodySetBGColor('black');
-                bodySetColor('white');
-                obj.value = 'night';
-
-                linksSetColor('powderblue');
+        let body = { // key값이 string이어야 하는건 json이다. string이어도 아래 코드는 작동한다
+            "setColor" : function(color){
+                document.querySelector('body').style.color = color;
+            },
+            setBGColor : function(color){
+                document.querySelector('body').style.backgroundColor = color;
             }
         }
-        function linksSetColor(color){
-            let aList = document.querySelectorAll('a');
+
+        let links = {
+            setColor : function(color){
+                let aList = document.querySelectorAll('a');
                 for (a of aList) {
                     a.style.color = color;
                 }
+            }
         }
+        
+        function change(obj) {
+            
+            if (obj.value == 'night') {
+                body.setBGColor('white');
+                body.setColor('black');
+                obj.value = 'day';
+                links.setColor('blue');
+                
+            } else {
+                body.setBGColor('black');
+                body.setColor('white');
+                obj.value = 'night';
+
+                links.setColor('powderblue');
+            }
+        }
+           
     </script>
 </head>
 <body>
