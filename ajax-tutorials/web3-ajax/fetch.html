@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<script>
+    function fet() {
+        fetch('javascripTT')
+            .then((response) => { // response는 객체이름
+                if(!response.ok){
+                    throw new Error('400 아니면 500 에러')
+                }
+                // response.text() // xhr의 this.responseText
+                return response.text()
+            }) // return response.json() // 객체로 파싱
+            .then((result) => {
+
+                document.querySelector('article').innerHTML = result;
+
+            })
+            .catch((e) => {
+                console.log('에러발생');
+            })
+    }
+    function xhr() {
+        let xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = function () {
+            if (this.status === 200 && this.readyState === 4) {
+                alert(this.responseText);
+            }
+        }
+        xhr.open('get', 'css');
+        xhr.send();
+    }
+
+</script>
+
+<body>
+    <input type="button" value="fetch" onclick="fet()">
+    <article>
+
+    </article>
+</body>
+
+</html>

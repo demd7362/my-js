@@ -1,0 +1,61 @@
+<!doctype html>
+<html>
+
+<head>
+  <title>WEB1 - Welcome</title>
+  <meta charset="utf-8">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="colors.js"></script>
+</head>
+<script>
+function fet(self){
+  fetch(self)
+  .then((response) => {
+    if(!response.ok){
+      throw new Error('400 or 500 에러 발생')
+    }
+    return response.text()
+  })
+  .then((result)=>{
+    document.querySelector('article').innerHTML = result;
+  })
+  .catch((e) =>{
+    console.log(e);
+  })
+}
+if(location.hash){
+  fet(location.hash.substr(2)); // 이건 눌렀다 다른페이지 가고 다시 돌아왔을때를 위한 코드
+} else {
+  fet('welcome');
+}
+fetch('list')
+      .then((response)=>{
+        return response.text()
+      })
+      .then((result)=>{
+        let names = result.split(',');
+        
+        for(let i of names){
+          document.querySelector('#nav').innerHTML +=
+          '<li><a href="#!'+i+'" onclick="fet(\''+i+'\')">'+i+'</a></li>'
+        }
+        
+      })
+
+</script>
+
+<body>
+  <h1><a href="index.html">WEB</a></h1>
+  <input id="night_day" type="button" value="night" onclick="
+    nightDayHandler(this);
+  ">
+  <ol id="nav">
+    
+  </ol>
+  <article>
+
+  </article>
+  <!-- 해쉬는 북마크같은 느낌이라 용도를 구분하기위해 관습적으로 !을 붙임. 해쉬뱅이라고 부름 -->
+</body>
+
+</html>
