@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+<script>
+function setPromise(cnt){
+	return new Promise((resolve,reject)=>{
+		setTimeout(()=>{
+			document.write(cnt);
+			console.log(cnt+'시작');
+			resolve();
+		},cnt*1000);
+		
+	})
+	
+}
+
+async function getCnt(cnt){
+	while(cnt > 0){
+		await setPromise(cnt--);
+	}
+}
+
+getCnt(4);
+</script>
+</body>
+</html>
