@@ -172,7 +172,7 @@
             } 
         }
         getOrSetIssue();
-        document.querySelector('h1').innerText = `${issue} - 요구사항`;
+        document.querySelector('h1').innerText = `[${issue}] - 요구사항`;
         // 콘텐츠, 데이터리스트 가져와야함
         
         let remoteNum = 1 // 템플릿 카운트
@@ -283,6 +283,12 @@
                 document.onmousemove = null;
             }
         }
+
+        const adjustInputText = (elmnt) => {
+            elmnt.addEventListener('input',() => {
+                elmnt.style.width = `${elmnt.value.length * 13}px`;
+            });
+        }
         const switching = (obj) => { // 자동, 수동 변경
             isAutomatic = obj.id === 'auto';
             
@@ -315,9 +321,7 @@
             titleInputText.type = 'text';
             titleInputText.className = 'title';
             titleInputText.placeholder = '새로운 타이틀을 입력해주세요.';
-            titleInputText.addEventListener('input',() => { // 텍스트에 맞춰서 칸 조정
-                titleInputText.style.width = `${titleInputText.value.length * 13}px`;
-            });
+            adjustInputText(titleInputText);
             
             legend.insertAdjacentElement('beforeend',titleInputText);
             fieldset.insertAdjacentElement('beforeend',legend);
@@ -335,22 +339,21 @@
             </datalist>`;
             fieldset.insertAdjacentHTML('beforeend',html);
             const select = document.querySelector(`select[name=${inherentVal}]`);
-
-            select.addEventListener('change',(e) => {
-                const isSelf = e.target.value === '직접 입력';
-                if(isSelf){
-                    select.remove(); 
-                    const selfInputText = document.createElement('input');
-                    selfInputText.type = 'text';
-                    selfInputText.placeholder = '직접 입력';
-                    selfInputText.style.width = '65px';
-                    selfInputText.addEventListener('input',() => {
-                        selfInputText.style.width = `${selfInputText.value.length * 13}px`;
-                    });
+            const listInputText = document.querySelector('input[list]');
+            adjustInputText(listInputText);
+            // select.addEventListener('change',(e) => {
+            //     const isSelf = e.target.value === '직접 입력';
+            //     if(isSelf){
+            //         select.remove(); 
+            //         const selfInputText = document.createElement('input');
+            //         selfInputText.type = 'text';
+            //         selfInputText.placeholder = '직접 입력';
+            //         selfInputText.style.width = '65px';
+            //         adjustInputText(selfInputText);
                     
-                    document.querySelector(`input[list=${inherentVal}]`).insertAdjacentElement('beforebegin',selfInputText);
-                }
-            })
+            //         document.querySelector(`input[list=${inherentVal}]`).insertAdjacentElement('beforebegin',selfInputText);
+            //     }
+            // })
             
             num++;
             
