@@ -55,6 +55,22 @@
             right : 5px;
             cursor : pointer;
         }
+        #requirements {
+            position : fixed;
+            right : 30px;
+            top : 0;
+            text-align: center;
+            font-family: sans-serif;
+        }
+        #requirements > textarea{
+            border : 0 dotted black;
+            font-weight: bold;
+            width : 380px;
+            height : 300px;
+            color : black;
+            font-size: 20px;
+            resize : none;
+        }
     </style>
 </head>
 <body>
@@ -88,6 +104,10 @@
     
     <input type="checkbox" id="ask-delete" onchange="directDelete(this)">
     <label for="ask-delete">바로 삭제</label>
+    <div id="requirements">
+        <h1></h1>
+        <textarea placeholder="상세 입력"></textarea>
+    </div>
     <br>
     </div>
     <div id="field"></div>
@@ -152,7 +172,7 @@
             } 
         }
         getOrSetIssue();
-        
+        document.querySelector('h1').innerText = `${issue} - 요구사항`;
         // 콘텐츠, 데이터리스트 가져와야함
         
         let remoteNum = 1 // 템플릿 카운트
