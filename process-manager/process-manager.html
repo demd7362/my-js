@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css" integrity="sha512-SzlrxWUlpfuzQ+pcUCosxcglQRNAq/DZjVsC0lE40xsADsfeQoEypE+enwcOiGjk/bSuGGKHEyjSoQ1zVisanQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        
+        fieldset {
+            width : 500px;
+            padding : 20px;
+            border : 3px solid;
+        }
+        input[type=color]{
+            width : 30px;
+        }
+        
+        .title{
+            border : 0 solid black;
+            width : 180px;
+            text-align: center;
+        }
+        textarea {
+            margin-top : 20px;
+            width : 480px;
+            height : 180px;
+        }
+        strong {
+            float : right;
+            cursor : pointer;
+            border : 1px dotted;
+            padding : 3px;
+            font-size: 12px;
+        }
+        #remote {
+            border : 1px solid;
+            width : 100px;
+            height : 200px;
+            position : fixed;
+            bottom : 30px;
+            right : 30px;
+            
+        }
+        #remote > div {
+            border-bottom : 1px solid;
+            position: relative;
+            cursor : pointer;
+            text-align: center;
+        }
+        [class*=fa-lock] {
+            position : absolute;
+            bottom : 5px;
+            right : 5px;
+            cursor : pointer;
+        }
+    </style>
+</head>
+<body>
+    <div id="settings">
+    <input id="dao" name="type" type="checkbox">
+    <label for="dao">DAO</label>
+    <input type="color" onchange="changeColor(this)" id="dao-color">
+
+    <input id="service" name="type" type="checkbox">
+    <label for="service">Service</label>
+    <input type="color" onchange="changeColor(this)" id="service-color">
+
+    <input id="controller" name="type" type="checkbox">
+    <label for="controller">Controller</label>
+    <input type="color" onchange="changeColor(this)" id="controller-color">
+
+    <input id="jsp" name="type" type="checkbox">
+    <label for="jsp">JSP</label>
+    <input type="color" onchange="changeColor(this)" id="jsp-color">
+
+    <input type="radio" name="automatic" onclick="switching(this)" id="auto" checked>
+    <label for="auto">자동</label>
+    <input type="radio" name="automatic" onclick="switching(this)" id="manual">
+    <label for="manual">수동</label>
+
+    <button onclick="create()" id="createBtn" style="display : none;">생성</button>
+    
+    <select name="main" onchange="inputSub(this)">
+        <option>대분류</option>
+    </select>
+    
+    <input type="checkbox" id="ask-delete" onchange="directDelete(this)">
+    <label for="ask-delete">바로 삭제</label>
+    <br>
+    </div>
+    <div id="field"></div>
+    <script>
+        
+        
+        
+        let settings = {};
+        let issue;
+        let issues = {};
+        let num = 1;
+        const valueObject = {
+            'dao' : {
+                'options' : ['TABLE','select id','insert id','update id','delete id','DAO.xml','DAO.java'],
+                'datalist' : []
+            },
+            'service' : {
+                'options' : ['service','DAO.java'],
+                'datalist' : []
+            },
+            'controller' : {
+                'options' : ['controller','service','mapping value','jsp','function'],
+                'datalist' : []
+            },
+            'jsp' : {
+                'options' : ['function','variable','get','post'],
+                'datalist' : []
+            }
+        }
+        const utils = ['단축키 활성화','템플릿 자동 생성 활성화','키워드 자동 저장 활성화'];
+        const $categories = ['DAO','Service','Controller','JSP'];
+        $categories.forEach((category) => {     
+            let html = `<option value="${category.toLowerCase()}">${category}</option>`;
+            document.querySelector('select[name=main]').insertAdjacentHTML('beforeend',html);
+            
+        });
+
+        const getOrSetIssue = () => {
+            let tmpIssues = localStorage.getItem('issues'); // K = issue명 V = issue정보
+            let tmpSettings = localStorage.getItem('settings'); // 동일
+            
+            const tmp = [];
+            
+            if(tmpIssues){ // 이슈 리스트 출력용 배열에 담음
+                issues = JSON.parse(tmpIssues);
+                settings = JSON.parse(tmpSettings);
+                for(const key of Object.keys(issues)){
+                    tmp.push(key);
+                }
+            } 
+            let msg = `---이슈 리스트---\n${tmp.join('\n')}\n또는 새로운 이슈 명을 입력하세요.`;
+            issue = prompt(msg);
+            const $field = issues[issue];
+            const $settings = settings[issue];
+            if($field){
+                document.getElementById('field').innerHTML = $field;
+                document.getElementById('settings').innerHTML = $settings.settings; // 상단 메뉴
+                num = $settings.numbering; // 템플릿 넘버링
+            }
+            if(!issue?.trim()){ 
+                getOrSetIssue();
+            } 
+        }
+        getOrSetIssue();
+        
+        // 콘텐츠, 데이터리스트 가져와야함
+        
+        let remoteNum = 1 // 템플릿 카운트
+        let isAutomatic = true; // false => 수동
+        const types = document.querySelectorAll('input[name=type]');
+        let isDeleteDirectly = false; // true => confirm문 띄우지 않고 바로 삭제
+        let isRemoteLocked = false; // 리모콘 드래그 잠금
+        const keyMap = { // 단축키 설정
+            '!' : 'dao',
+            '@' : 'service',
+            '#' : 'controller',
+            '$' : 'jsp',
+            'ArrowLeft' : 'prev-num',
+            'ArrowRight' : 'next-num'
+        };
+        types.forEach((type) => { 
+            type.addEventListener('change',(e) => { // 체크박스 유일성 부여
+                const checkBoxes = document.querySelectorAll('input[name=type]:checked');
+                for(const checkBox of checkBoxes){ 
+                    checkBox.checked = checkBox === e.target;
+                }
+                type.checked = true;
+                if(isAutomatic){
+                    create();
+                }
+            }); // end of addEventListener
+
+        }); // end of outer forEach
+
+
+        
+        const directDelete = (obj) => {
+            isDeleteDirectly = obj.checked;
+            if(isDeleteDirectly){
+                alert('더 이상 삭제할 때 확인 문구를 띄우지 않습니다.');
+            }
+        }
+        const reflectDeleteDatalist = (category,value) => { // datalist에 반영
+            
+            const datalists = document.querySelectorAll(`datalist[id*=${category}`);
+            datalists.forEach((datalist) => { // 템플릿 안에서의 datalist에서 삭제
+                datalist.querySelector(`option[value="${value}"]`)?.remove(); 
+            })
+        
+        } 
+
+
+        const inputSub = (obj) => {
+            // obj.value => 대분류 카테고리
+            if(obj.value === '대분류' ) return;
+            const main = document.querySelector('select[name=main]');
+            const sub = document.querySelector('select[name=sub]')?.remove(); // sub 존재하면 지움
+            let html = `<select onchange="deleteSublist(this,'${obj.value}')" name="sub">
+            <option>삭제 메뉴</option>`; // datalist에 직접적으로 꽂아주는 부분
+            valueObject[obj.value].datalist.forEach((data) => { 
+                html += `<option value=${data}>${data}</option>`;
+            })
+            html += `</select>`;
+            main.insertAdjacentHTML('afterend',html);
+        }
+
+        const deleteSublist = (self,mainCategory) => {
+            if(self.value === '삭제 메뉴') return;
+            if(isDeleteDirectly || confirm('정말로 삭제할까요?')){
+                reflectDeleteDatalist(mainCategory,self.value);
+                const tmpArray = valueObject[mainCategory].datalist; // 얕은 복사기 때문에 변수에 담음
+                for(let i=0; i<tmpArray.length; i++){ 
+                    // datalist에서 삭제, 반드시 이게 먼저 이루어져야함 => self.value 사라짐
+                    if(tmpArray[i] === self.value){
+                        tmpArray.splice(i,1);
+                        break; 
+                    }
+                }
+            self.querySelector(`option[value="${self.value}"]`).remove(); // 소분류에서 삭제
+            }
+         
+        }
+
+        const draggable = (elmnt) => {
+            let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+            elmnt.onmousedown = dragMouseDown;
+            function dragMouseDown(e) {            
+                e.preventDefault();
+                // 움직이기 시작한 위치값
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                // 커서가 움직일때마다 함수 호출
+                document.onmousemove = elementDrag;
+                document.onmouseup = closeDragElement;
+            }
+
+            function elementDrag(e) {
+                if(isRemoteLocked) return;
+                e.preventDefault();
+                // 커서의 위치값 계산
+                pos1 = pos3 - e.clientX;
+                pos2 = pos4 - e.clientY;
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                // 요소의 새로운 위치값
+                elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+                elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+            }
+
+            function closeDragElement() {
+                // 드래그 이벤트 종료
+                document.onmouseup = null;
+                document.onmousemove = null;
+            }
+        }
+        const switching = (obj) => { // 자동, 수동 변경
+            isAutomatic = obj.id === 'auto';
+            
+            if(isAutomatic){
+                alert(`${utils.join('\n')}되었습니다.`);
+            }
+            document.getElementById('createBtn').style.display = isAutomatic ? 'none' : '';
+        }
+        
+        const changeColor = (obj) => {
+            const id = obj.id;
+            const val = id.substring(0,id.indexOf('-'));
+            document.querySelectorAll(`fieldset[id*=${val}]`).forEach((target) => {
+                target.style.borderColor = obj.value;
+            })
+        }
+
+        const create = () => { // 템플릿 생성
+            
+            const checkedVal = document.querySelector('input[name=type]:checked');
+            const fieldset = document.createElement('fieldset');
+            fieldset.id = `${checkedVal.id}-fieldset${num}`;
+            
+            
+            const borderColor = document.getElementById(`${checkedVal.id}-color`).value;
+            fieldset.style.borderColor = borderColor;
+            const legend = document.createElement('legend');
+            legend.insertAdjacentHTML('afterbegin', `<b id="remote${num}">${num}.</b>`);
+            const titleInputText = document.createElement('input');
+            titleInputText.type = 'text';
+            titleInputText.className = 'title';
+            titleInputText.placeholder = '새로운 타이틀을 입력해주세요.';
+            titleInputText.addEventListener('input',() => { // 텍스트에 맞춰서 칸 조정
+                titleInputText.style.width = `${titleInputText.value.length * 13}px`;
+            });
+            
+            legend.insertAdjacentElement('beforeend',titleInputText);
+            fieldset.insertAdjacentElement('beforeend',legend);
+            document.getElementById('field').appendChild(fieldset);
+            
+            const options = valueObject[checkedVal.id].options;
+            const datalist = valueObject[checkedVal.id].datalist;
+            const inherentVal = `${checkedVal.id}-list${num}`;
+            let html = `<select name="${inherentVal}">${options.map(value => `<option value="${value}">${value}</option>`)}</select>
+            <input list="${inherentVal}" type="text" onchange="saveDatalist(this)" placeholder="키워드를 입력해주세요">
+            <strong onclick="deleteTemplate('${fieldset.id}')">해당 템플릿 삭제</strong>
+            <br><textarea placeholder="구체적인 로직을 작성해주세요"></textarea>
+            <datalist id="${inherentVal}">
+            ${datalist.map(value => `<option value="${value}">${value}</option>`)}
+            </datalist>`;
+            fieldset.insertAdjacentHTML('beforeend',html);
+            const select = document.querySelector(`select[name=${inherentVal}]`);
+
+            select.addEventListener('change',(e) => {
+                const isSelf = e.target.value === '직접 입력';
+                if(isSelf){
+                    select.remove(); 
+                    const selfInputText = document.createElement('input');
+                    selfInputText.type = 'text';
+                    selfInputText.placeholder = '직접 입력';
+                    selfInputText.style.width = '65px';
+                    selfInputText.addEventListener('input',() => {
+                        selfInputText.style.width = `${selfInputText.value.length * 13}px`;
+                    });
+                    
+                    document.querySelector(`input[list=${inherentVal}]`).insertAdjacentElement('beforebegin',selfInputText);
+                }
+            })
+            
+            num++;
+            
+        }
+        if(isAutomatic){ // 단축키 활성화
+            addEventListener('keydown',(e) => { 
+                document.getElementById(keyMap[e.key])?.click();
+            });
+        }
+        const remoteClick = (isPlus) => { 
+            remoteNum += isPlus ? 1 : -1;
+            if(remoteNum > num) {
+                remoteNum = num;
+            } else if(remoteNum < 1) {
+                remoteNum = 1;
+            }
+            document.getElementById(`remote${remoteNum}`)?.scrollIntoView();
+        }
+
+        const deleteTemplate = (fieldsetId) => {
+            if(isDeleteDirectly || confirm('정말로 삭제할까요?')){
+                const target = document.getElementById(fieldsetId);
+                let tmp = target.querySelector('b').innerText;
+                const targetNumbering = Number(tmp.substring(0,tmp.indexOf('.')));
+                target.remove();
+                num--;
+                document.querySelectorAll('b').forEach((b) => { // 삭제 시 넘버링 재할당
+                    tmp = b.innerText;
+                    const numbering = Number(tmp.substring(0,tmp.indexOf('.')));
+                    if(targetNumbering < numbering){
+                        b.innerText = (numbering-1)+'.';
+                    }
+                })
+            }
+        }
+
+        const saveDatalist = (obj) => { // 자동완성 키워드 추가
+            if(!isAutomatic) return;
+            let tmp = obj.getAttribute('list');
+            const inherentVal = tmp.substring(0,tmp.indexOf('-'));
+            const data = obj.value;
+            if(!data.trim()) return; // 키워드가 공백이라면 return
+            // data 스토리지에 저장 필요
+            const isExist = valueObject[inherentVal].datalist.includes(data);
+            if(!isExist){
+                valueObject[inherentVal].datalist.push(data); //
+                document.querySelectorAll(`datalist[id*=${inherentVal}]`).forEach(fieldset=>{ 
+                const option = document.createElement('option');
+                option.value = data;
+                fieldset.appendChild(option);
+                });
+            }
+            
+            
+             
+        }
+        const switchDragLock = (obj) => { // 리모트 메뉴 드래그 잠금
+            isRemoteLocked = !isRemoteLocked;
+            let className = 'fa-solid fa-lock';
+            if(!isRemoteLocked) className += '-open';
+            obj.className = className;
+        }
+        
+        const saveIssue = (obj) => {
+            const $tmp = {};
+            const $field = document.getElementById('field').innerHTML;
+            const $settings = document.getElementById('settings').innerHTML;
+            $tmp.settings = $settings;
+            $tmp.numbering = num;
+            
+            issues[issue] = $field;
+            settings[issue] = $tmp;
+            
+            console.log(settings)
+            localStorage.setItem('issues',JSON.stringify(issues));
+            localStorage.setItem('settings',JSON.stringify(settings));
+            
+            obj.innerText = '저장 완료!';
+            setTimeout(() => {
+                obj.innerText = '이슈 저장';
+            }, 3000);
+        }
+        const deleteIssue = (obj) => {
+            if(confirm('현재 이슈가 이슈 리스트에서 삭제됩니다.')){
+                if(issues[issue]){
+                    delete issues[issue];
+                    delete settings[issue];
+                    localStorage.setItem('issues',JSON.stringify(issues));
+                    localStorage.setItem('settings',JSON.stringify(settings));
+                    
+                    obj.innerText = '삭제 완료!';
+                    setTimeout(() => {
+                        obj.innerText = '이슈 삭제';
+                    }, 3000);
+                } else {
+                    alert('현재 이슈가 저장된 상태가 아닙니다.');
+                }
+            } // end of confirm
+        }
+
+        addEventListener('load',() => {
+            const remote = document.getElementById('remote');
+            draggable(remote);
+        })
+        
+    </script>
+    <div id="remote" draggable="true">
+        <div id="prev-num" onclick="remoteClick(false)">←</div>
+        <div id="next-num" onclick="remoteClick(true)">→</div>
+        <div onclick="saveIssue(this)">이슈 저장</div>
+        <div onclick="deleteIssue(this)">이슈 삭제</div>
+        <i class="fa-solid fa-lock-open" onclick="switchDragLock(this)"></i>
+    </div>
+    
+</body>
+</html>
