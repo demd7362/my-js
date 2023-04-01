@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      label {
+        display: block;
+      }
+
+      textarea {
+        width: 700px;
+        height: 700px;
+        resize: none;
+      }
+
+      header {
+        text-align: center;
+        margin: 0px 30px;
+      }
+
+      .flex-container {
+        display: flex;
+        flex-flow: wrap;
+        justify-content: center;
+      }
+
+      .flex-child {
+        margin: 15px 30px;
+      }
+
+      #output {
+        text-shadow: 3rem;
+      }
+      img {
+        position: fixed;
+        top : 0;
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Validator</h1>
+      <p>Java VO 또는 JSON을 입력하세요...</p>
+      <span id="howToUse">사용 방법</span>
+    </header>
+    <div class="flex-container">
+      <div class="flex-child">
+        <label for="test">Original</label>
+        <textarea id="input"></textarea>
+      </div>
+      <div class="flex-child">
+        <label for="test">Output</label>
+        <textarea id="output" disabled></textarea>
+      </div>
+    </div>
+    <img style="display: none;"src="https://user-images.githubusercontent.com/115058411/229290840-ce6c6b81-78f5-4f14-9cfa-823577fee749.png">
+    <script>
+        let body;
+        const checker = {
+            parseVO(data){
+                const arr = data.split(',');
+                for (let i = 1; i<arr.length; i++) {
+                    const val = arr[i];
+                    if (!val.includes('null') && val.substring(val.indexOf('=') + 1).trim().length > 0) { // 
+                        output.value += val + '\n'
+                    }
+                } // end of for
+                output.value = output.value.substring(0,output.value.lastIndexOf(')'));
+            },
+            parseObject(data){
+                data = JSON.parse(data);
+                for(const [K,V] of Object.entries(data)){     
+                    if(String(V).trim() && !String(V).includes('null')){ // '0'은 truthy
+                        output.value += `${K} : ${V} \n`;
+                    }
+                }
+            } 
+        }
+        const output = document.getElementById('output');
+        const input = document.getElementById('input');
+        input.addEventListener('input',function(){
+            convert(this);
+        });
+        const convert = obj => {
+            output.value = '';
+            const key = obj.value.includes('VO') ? 'parseVO' : 'parseObject';
+            checker[key](obj.value);
+        } 
+        const howToUse = document.getElementById('howToUse');
+        howToUse.addEventListener('mouseover',function(){
+            this.style.fontWeight = 'bold';
+            this.style.cursor = 'pointer';
+        });
+        howToUse.addEventListener('mouseout',function(){
+            this.style.fontWeight = 'normal';
+        });
+        howToUse.addEventListener('click',function(){
+            document.querySelector('img').style.display = '';
+            
+        });
+        document.querySelector('img').addEventListener('click',function(){
+            this.style.display = 'none';
+        });
+      const str =
+        '{"page":1,"itemsPerPage":15,"sortIndex":null,"sortDesc":null,"rowNum":null,"mandt":null,"compCd":null,"bukrs":null,"intgPrjNo":"M16744","docNo":null,"docTtl":null,"docClasiCd":" ","stndDocTemp":null,"crnDaytm":"20230315163821","signDaytm":null,"creId":"2020882","nm":null,"docClasiNm":null,"quotNo":"20230315001","rmLocal":null,"rmLocalNm":null,"abnm":null,"mainnBizccd":null,"mngBizcCd":null,"chgrNm":null,"faxno":null,"zipcd":null,"addr":"강원 원주시 북원로 2001(무실동)","acctNo":null,"searchAbnm":null,"rmDmDcd":null,"telNo":" ","custNo":"0000248776","custNm":"원주대성중학교","mobNo":null,"cty":null,"elctDocNo":null,"elctDocTtl":null,"elctDocClasiCd":null,"esFileId":null,"elctDocId":null,"atthFileGcdId":" ","thfSignReqDaytm":null,"alSignCmptYn":null,"alSignCmptDaytm":null,"elctDocMemo":null,"esCmptUrl":null,"auditDocUrl":null,"esCancDaytm":null,"elctSignSeqno":null,"email":null,"progStatCd":null,"chafDaytm":"20230315163821","chgpId":"2020882","esCancYn":null,"custNo1":null,"custNm1":null,"telNo1":null,"email1":null,"custNo2":null,"custNm2":null,"telNo2":null,"email2":null,"custNo3":null,"custNm3":null,"telNo3":null,"email3":null,"custNo4":null,"custNm4":null,"telNo4":null,"email4":null,"custNo5":null,"custNm5":null,"telNo5":null,"email5":null,"esCancNm":null,"esRejcNm":null,"bdNm":null,"svcBdNm":null,"rmCc":null,"sitenm":"대성중학교","salesSegDcd":null,"addrNm":null,"rmPm":null,"svcAddrNm":null,"crn":null,"repre":"학교장","bizcCd":" ","rmCocmCd":" ","docAprvProgStat":" ","siteNmIdcpxDb":" ","addrNmIdcpxDb":" ","hrtsCntrYn":" ","diPbxCntrYn":" ","hrtsRmk":" ","hrtsLneShp":" ","hrtsLneProdr":" ","hrtsCommfMa":" ","diPbxCommfMa":" ","hrtsLneShp2":" ","hrtsLneProdr2":" ","hrtsCommfMa2":" ","dipbxCommfMa2":" ","custInfoMakeDt":" ","monRfChrgType":"3","monRfZipcd":" ","monRfRadAddr":"강원도 원주시 북원로","monRfRadAddrDtl":" ","monRfBfoAddr":"강원도 원주시 무실동","monRfBfoAddrDtl":"산123-1 대성중고등학교","monRfRcvrNm":"행정실","monRfPrenumNo":"0337376411","monRfFaxNo":" ","elttxbll1RcvEmail":"kaslo4@hanmail.net","elttxbll2RcvEmail":" ","elttxbllIsuDt":"1","elttxbllIsuDtEtc":"20","elttxbllIsuSmsRcvAgre":"N","elttxbllIsuCncrCadd":" ","monRfMakeDt":" ","ckrptRcprNm":" ","ckrptTelNo":" ","ckrptFaxNo":" ","ckrptRcvEmail":" ","ckrptRcvAgreYn":" ","ckrptRmoWacSmsRcvYn":" ","ckrptRmoWacSmsCadd":" ","ckrptCrtCbYn":" ","ckrptCrtCbEtcAmat":" ","ckrptMakeDt":" ","eceCntt1AbvaPri":" ","eceCntt2AbvaPri":" ","eceCntt3AbvaPri":" ","eceCntt4AbvaPri":" ","eceCntt5AbvaPri":" ","eceCnttEtcAmat":" ","prsinfColeAgreYn":" ","prsinfHndTaskConsAgreYn":" ","prsinfRrnHandlAgreYn":" ","prsinfColeAgreDt":" ","emrCurrMakeDt":" ","wdrAccoAchNm":" ","wdrAccoAchDob":" ","wdrAccoAchBizpn_juminNoNo":null,"wdrAccoFnacOittNm":" ","wdrAccoAccoNo":" ","wdrAccoAchCadd":" ","wdrAccoAchMoblpNo":" ","wdrAccoApliNm":" ","wdrAccoAchRel":" ","wdrAccoApliCadd":" ","wdrAccoApliMoblpNo":" ","wdrAccoWdrReqDt":" ","prsinfColeUseAgreYn":" ","prsinf3InfoProdrAgreYn":" ","wdrAccoApplDt":" ","wdrAccoMakeDt":" ","esBizpn_ihidnumReg":null,"wdrAccoAchBizpnJuminNoNo":" ","esBizpnIhidnumReg":" ","docClasiCdNm":null,"maxDocNo":null,"seqNo":null,"fileNm":null,"cntrProdDcd":" ","cntrProdEtc":" ","quotCont":" ","quotTlt":"TEST","eceCntt1TelPri":" ","eceCntt2TelPri":" ","eceCntt3TelPri":" ","eceCntt4TelPri":" ","eceCntt5TelPri":" ","etcCntrRpytmStrt":null,"etcCntrRpytmEnd":null,"etcEqmtMonRntl":null,"etcChkCycl":null,"etcChkNb":null,"etcCostStlPaymDay":null,"etcTrblJrsdCourt":null,"etcWrtDay":" ","etcCorp":null,"etcBizNm":null,"etcBizRegNo":null,"etcZipcd":null,"etcAddr":null,"etcAddrDtl":null,"etcBiztp":null,"etcEvnt":null,"etcCmrNm":null,"etcCmrRepreNm":null,"etcCmrBizpnRegNo":null,"etcCmrSeatZipcd":null,"etcCmrSeatAddr":null,"etcCmrSeatDtlAddr":null,"etcCmrBkNm":null,"etcCmrDpstr":null,"etcCmrAtnb":null,"etcSalesEmplNm":null,"etcSalesEmplCntt":null,"etcMainChkNm":null,"etcMainChkCntt":null,"monRfAmtYn":" ","compoRparAmtYn":" ","quotNoChk":null,"prjNo":null,"hrtsYn":null,"indCorpBizpnDcd":" ","trlineCd":"B01","rmResNp":null,"stayPerCntrMthd":null,"stayBizcDmDcd":null,"achApli":null,"rmResNpCnt":null,"rmResNpForsign":null,"stayPerCntrMthdForsign":null,"stayBizcDmDcdForsign":null,"monRfChrgTypeForsign":null,"achApliForsign":null,"rmResNpCntForsign":null,"crnForsign":null,"cs121Zic":" ","cs121P1c":"강원도 원주시 북원로 2001","cs121P2c":" ","cs121Zib":null,"taxbillAddr":null,"cs121Dp2b":null,"cs121P1b":null,"cs121P2b":null,"taxbillRcvYn":null,"taxbillSms":null,"cntrClss":null,"pamDcd":null,"padDcd":null,"bkbrCd":null,"bkaccoNo":null,"ach":null,"juminNocorpNo":null,"cmsApPresstat":null,"cmsAppldcd":null,"csmContnm":null,"csmConttelno":null,"csmContcelno":null,"acctRel":null,"perInfCollYn":null,"perInfSplyYn":null,"cmsReqDt":null,"cmsThfStrtdt":null,"apfAcpdt":null,"cmsWdraccoAchnm":null,"achDob":null,"bkCd":null,"wdrAccono":null,"achCadd":null,"achMobno":null,"apliNm":null,"achRel":null,"apliCadd":null,"apliMobno":null,"wdrReqDt":null,"persoinfoColeprodAgre":null,"persoinfoTpprodAgre":null,"applDt":null,"custEsDaytm":null,"wdraccoAchnm":null,"quotUseYn":null,"cs406Rgn":null,"cntrCompYn":null,"hrtsChkCycle":null,"appvChk":null,"juminNum":null,"paygb":"00","longPlan":" "}';
+        console.log(str);
+        console.log(JSON.parse(str))
+      
+
+    </script>
+  </body>
+</html>
