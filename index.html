@@ -72,8 +72,8 @@
         let falsy = 0;
         const bracketRemover = (bracket) => {
             const otherBracket = bracket === '(' ? ')' : '}';
-            html = html.substring(html.lastIndexOf(bracket)+1).replaceAll(otherBracket,'');
-            filtered = filtered.substring(filtered.lastIndexOf(bracket)+1).replaceAll(otherBracket,''); 
+            html = html.substring(html.indexOf(bracket)+1).replaceAll(otherBracket,'');
+            filtered = filtered.substring(filtered.indexOf(bracket)+1).replaceAll(otherBracket,''); 
         }
         const setDefault = () => {
             html = '';
