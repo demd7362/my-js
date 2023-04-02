@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Validator</title>
+    <title>Data Sorter</title>
     <style>
       header {
         text-align: center;
@@ -41,7 +41,7 @@
   </head>
   <body>
     <header>
-      <h1>Validator</h1>
+      <h1>Data Sorter</h1>
       <p>Java VO 또는 JSON을 입력하세요...</p>
       <span id="howToUse">사용 방법</span>
     </header>
@@ -54,7 +54,7 @@
       <div class="flex-child">
         <label for="output">Output</label>
         <input type="checkbox" id="change">
-        <label for="change">falsy값 보기</label>
+        <label for="change">Show Invalid Values</label>
         <div class="area" contenteditable="false" id="output" disabled></div>
         <div id="outputCnt"></div>
       </div>
@@ -70,14 +70,12 @@
         const inputCnt = document.getElementById('inputCnt');
         let truthy = 0;
         let falsy = 0;
-        const braceRemover = (val) => {
-            if(val.includes('{')){
-                return val.substring(val.indexOf('{')+1);
-            } else if(val.includes('}')){
-                return val.substring(0,val.lastIndexOf('}'));
-            } return val;
+        const bracketRemover = (bracket) => {
+            const otherBracket = bracket === '(' ? ')' : '}';
+            html = html.substring(html.lastIndexOf(bracket)+1).replaceAll(otherBracket,'');
+            filtered = filtered.substring(filtered.lastIndexOf(bracket)+1).replaceAll(otherBracket,''); 
         }
-        const clear = () => {
+        const setDefault = () => {
             html = '';
             filtered = '';
             truthy = 0;
@@ -85,13 +83,12 @@
         }
         const setCount = (truthy,falsy) => {
             inputCnt.innerHTML = `<b>${truthy+falsy}개</b>`;
-            outputCnt.innerHTML = `<b>${(isChecked? falsy : truthy)}</b>개`;
+            outputCnt.innerHTML = `<b>${isChecked? falsy : truthy}개</b>`;
         }
         const checker = {
             parseVO(data){
                 const arr = data.split(',');
-                for (let i = 1; i<arr.length; i++) {
-                    const val = arr[i];
+                for (const val of arr) { 
                     const idx = val.indexOf('=');
                     if (!val.includes('null') && val.substring(val.indexOf('=') + 1).trim()) { // 
                         html += `${val.substring(0,idx)} : <b>${val.substring(idx+1)}</b><br>`;
@@ -101,7 +98,7 @@
                         falsy++;
                     }
                 } // end of for
-                html = html.substring(0,html.lastIndexOf(')'));
+                bracketRemover('(');
                 setCount(truthy,falsy);
             },
             parseObject(data){
@@ -109,9 +106,9 @@
                 try {
                     data = JSON.parse(data);
                 } catch (e){
+                    console.log(data)
                     const arr = data.split(',');
-                    for(let val of arr){
-                        val = braceRemover(val);
+                    for(const val of arr){
                         const idx = val.indexOf(':');
                         if(!(val.includes('null') || val.includes('" "'))){
                             html += `${val.substring(0,idx)} : <b>${val.substring(idx+1)}</b><br>`;
@@ -121,6 +118,7 @@
                             falsy++;
                         }
                     }
+                    bracketRemover('{');
                     setCount(truthy,falsy);
                     return;
                 }
@@ -141,7 +139,7 @@
             convert.call(this)
         });
         const convert = function() {
-            clear();
+            setDefault();
             const key = this.innerText.includes('VO') ? 'parseVO' : 'parseObject';
             checker[key](this.innerText);
             output.innerHTML = isChecked? filtered : html;
