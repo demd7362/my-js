@@ -62,8 +62,8 @@
     <img style="display: none;"src="https://user-images.githubusercontent.com/115058411/229290840-ce6c6b81-78f5-4f14-9cfa-823577fee749.png">
     <script>
         let isChecked = false;
-        let html = '';
-        let filtered = '';
+        let valid = '';
+        let invalid = '';
         const output = document.getElementById('output');
         const input = document.getElementById('input');
         const outputCnt = document.getElementById('outputCnt');
@@ -72,12 +72,12 @@
         let falsy = 0;
         const bracketRemover = (bracket) => {
             const otherBracket = bracket === '(' ? ')' : '}';
-            html = html.substring(html.indexOf(bracket)+1).replaceAll(otherBracket,'');
-            filtered = filtered.substring(filtered.indexOf(bracket)+1).replaceAll(otherBracket,''); 
+            valid = valid.substring(valid.indexOf(bracket)+1).replaceAll(otherBracket,'');
+            invalid = invalid.substring(invalid.indexOf(bracket)+1).replaceAll(otherBracket,''); 
         }
         const setDefault = () => {
-            html = '';
-            filtered = '';
+            valid = '';
+            invalid = '';
             truthy = 0;
             falsy = 0;
         }
@@ -91,10 +91,10 @@
                 for (const val of arr) { 
                     const idx = val.indexOf('=');
                     if (!val.includes('null') && val.substring(val.indexOf('=') + 1).trim()) { // 
-                        html += `${val.substring(0,idx)} : <b>${val.substring(idx+1)}</b><br>`;
+                        valid += `${val.substring(0,idx)} : <b>${val.substring(idx+1)}</b><br>`;
                         truthy++;
                     } else {
-                        filtered += `${val.substring(0,idx)} : <b>${val.substring(idx+1)}</b><br>`;
+                        invalid += `${val.substring(0,idx)} : <b>${val.substring(idx+1)}</b><br>`;
                         falsy++;
                     }
                 } // end of for
@@ -111,10 +111,10 @@
                     for(const val of arr){
                         const idx = val.indexOf(':');
                         if(!(val.includes('null') || val.includes('" "'))){
-                            html += `${val.substring(0,idx)} : <b>${val.substring(idx+1)}</b><br>`;
+                            valid += `${val.substring(0,idx)} : <b>${val.substring(idx+1)}</b><br>`;
                             truthy++;
                         } else {
-                            filtered += `${val.substring(0,idx)} : <b>${val.substring(idx+1)}</b><br>`;
+                            invalid += `${val.substring(0,idx)} : <b>${val.substring(idx+1)}</b><br>`;
                             falsy++;
                         }
                     }
@@ -124,10 +124,10 @@
                 }
                 for(const [K,V] of Object.entries(data)){     
                     if(String(V).trim() && !String(V).includes('null')){ // 0은 falsy이기 때문에 String으로 변환
-                        html += `${K} : <b>${V}</b><br>`;
+                        valid += `${K} : <b>${V}</b><br>`;
                         truthy++;
                     } else {
-                        filtered += `${K} : <b>${V}</b><br>`;
+                        invalid += `${K} : <b>${V}</b><br>`;
                         falsy++;
                     }
                 }
@@ -142,7 +142,7 @@
             setDefault();
             const key = this.innerText.includes('VO') ? 'parseVO' : 'parseObject';
             checker[key](this.innerText);
-            output.innerHTML = isChecked? filtered : html;
+            output.innerHTML = isChecked? invalid : valid;
         } 
         const howToUse = document.getElementById('howToUse');
         howToUse.addEventListener('mouseover',function(){
@@ -160,7 +160,7 @@
         });
         document.getElementById('change').addEventListener('change',function(){
             isChecked = this.checked;
-            output.innerHTML = isChecked ? filtered : html;
+            output.innerHTML = isChecked ? invalid : valid;
             setCount(truthy,falsy);
             // const input = document.getElementById('input');
             // convert.call(input);
