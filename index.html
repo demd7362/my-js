@@ -102,11 +102,9 @@
                 setCount(truthy,falsy);
             },
             parseObject(data){
-                
                 try {
                     data = JSON.parse(data);
                 } catch (e){
-                    console.log(data)
                     const arr = data.split(',');
                     for(const val of arr){
                         const idx = val.indexOf(':');
