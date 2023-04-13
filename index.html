@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css" integrity="sha512-SzlrxWUlpfuzQ+pcUCosxcglQRNAq/DZjVsC0lE40xsADsfeQoEypE+enwcOiGjk/bSuGGKHEyjSoQ1zVisanQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <title>Data Sorter</title>
     <style>
       header {
@@ -28,8 +29,8 @@
         height: 100%;
       }
       .area {
-        width: 700px;
-        height: 700px;
+        width: 600px;
+        height: 600px;
         border: 1px solid black;
         border-radius: 3px;
         overflow-y: auto;
@@ -37,6 +38,15 @@
       [id*=Cnt]{
         text-align: center;
       }
+      #list {
+        list-style: none;
+        display : flex;
+      }
+
+      li {
+        padding : 3px;
+      }
+      
     </style>
   </head>
   <body>
@@ -48,6 +58,11 @@
     <div class="flex-container">
       <div class="flex-child">
         <label for="input">Original</label>
+        
+        <label id="save">[[Save]]</label>
+        <i style="display:none;" class="fa-solid fa-check"></i>
+        <label style="display:none;" id="msg"></label>
+        
         <div class="area" contenteditable="true" id="input"></div>
         <div id="inputCnt"></div>
       </div>
@@ -59,17 +74,84 @@
         <div id="outputCnt"></div>
       </div>
     </div>
+    <div class="flex-container">
+        <ul id="list">
+            
+        </ul>
+    </div>
     <img style="display: none;"src="https://user-images.githubusercontent.com/115058411/229290840-ce6c6b81-78f5-4f14-9cfa-823577fee749.png">
     <script>
         let isChecked = false;
         let valid = '';
         let invalid = '';
+        let truthy = 0;
+        let falsy = 0;
         const output = document.getElementById('output');
         const input = document.getElementById('input');
         const outputCnt = document.getElementById('outputCnt');
         const inputCnt = document.getElementById('inputCnt');
-        let truthy = 0;
-        let falsy = 0;
+        const ul = document.getElementById('list');
+        const howToUse = document.getElementById('howToUse');
+        const save = document.getElementById('save');
+        
+        
+        let saveCnt = localStorage.getItem('saveCnt') ?? 0;
+        let isVisited = localStorage.getItem('isVisited');
+        const setBlur = (status) => {
+            const val = status? 'blur(3px)' : '';
+            document.querySelectorAll('body > *').forEach(el => {
+                if(el.nodeName !== 'HEADER'){
+                    el.style.filter = val; 
+                } else {
+                    el.childNodes.forEach(childEl => {
+                        if(!(childEl.nodeName === 'SPAN' || childEl.nodeName === '#text')){
+                            childEl.style.filter = val; 
+                        }               
+                    }); 
+                }
+            });
+        }
+        
+        const addFontWeight = (el) => {
+            el.addEventListener('mouseover',function(){
+                this.style.fontWeight = 'bold';
+                this.style.cursor = 'pointer';
+            });
+            el.addEventListener('mouseout',function(){
+                this.style.fontWeight = 'normal';
+            });
+        }
+        
+
+        const createLi = (suffix) => {
+            const li = document.createElement('li');
+            addFontWeight(li);
+            li.innerText = suffix;
+            li.addEventListener('click',function(){
+                const tmp = document.createElement('div');
+                const val = localStorage.getItem('value'+this.innerText) ?? '';
+                tmp.innerText = val;
+                input.innerText = val;
+                convert.call(tmp);
+            });
+            return li;
+        }
+
+        
+        const del = document.createElement('li');
+        del.innerText = 'del';
+        addFontWeight(del);
+        del.addEventListener('click',function(){
+            localStorage.clear();
+            localStorage.setItem('isVisited','true');
+            ul.innerHTML = '';
+            ul.insertAdjacentElement('beforeend',del);
+            saveCnt = 0;
+        });
+        ul.insertAdjacentElement('beforeend',del);
+        
+        
+        
         const bracketRemover = (bracket) => {
             const otherBracket = bracket === '(' ? ')' : '}';
             valid = valid.substring(valid.indexOf(bracket)+1).replaceAll(otherBracket,'');
@@ -133,6 +215,15 @@
             } 
         }
         
+        const setVisiblity = (delay,isVisible,...els) => {
+            const val = isVisible? '' : 'none';
+            setTimeout(() => {
+                els.forEach(el => {
+                    el.style.display = val;
+                })
+            }, delay);
+        }
+
         input.addEventListener('input',function(){
             convert.call(this)
         });
@@ -142,15 +233,12 @@
             checker[key](this.innerText);
             output.innerHTML = isChecked? invalid : valid;
         } 
-        const howToUse = document.getElementById('howToUse');
-        howToUse.addEventListener('mouseover',function(){
-            this.style.fontWeight = 'bold';
-            this.style.cursor = 'pointer';
-        });
-        howToUse.addEventListener('mouseout',function(){
-            this.style.fontWeight = 'normal';
-        });
+        
+        
+        addFontWeight(howToUse);
+        
         howToUse.addEventListener('click',function(){
+            setBlur(false);
             document.querySelector('img').style.display = '';
         });
         document.querySelector('img').addEventListener('click',function(){
@@ -164,6 +252,37 @@
             // convert.call(input);
         });
         
+        addFontWeight(save);
+
+        save.addEventListener('click',function(){
+            const checkIcon = document.querySelector('[class*=fa-check]');
+            const msg = document.getElementById('msg');
+            if(input.innerText){
+                msg.innerText = '저장 완료';
+                setVisiblity(0,true,checkIcon,msg);
+                setVisiblity(1000,false,checkIcon,msg);
+                
+                localStorage.setItem('saveCnt',++saveCnt);
+                localStorage.setItem('value'+saveCnt,input.innerText);
+                const li = createLi(saveCnt);
+                ul.insertBefore(li,del);
+            } else {
+                msg.innerText = '입력값이 없습니다';
+                setVisiblity(0,true,msg);
+                setVisiblity(1000,false,msg);
+            }
+        });
+        
+
+        if(!isVisited){
+            localStorage.setItem('isVisited','true');
+            setBlur(true);
+        } else {
+            for(let i = 1; i <= saveCnt; i++){
+                const li = createLi(i);
+                ul.insertBefore(li,del);
+            }
+        }
     </script>
   </body>
 </html>
