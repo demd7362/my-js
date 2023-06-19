@@ -1,10 +1,10 @@
 function generateObject(attribute) {
-            const template = {};
+            const obj = {};
 
             document.querySelectorAll(`[${attribute}]`).forEach(el => {
                 let target = el.getAttribute(`${attribute}`);
                 target = target.split('.');
-                let currentObj = template;
+                let currentObj = obj;
                 const length = target.length;
 
                 for (let i = 0; i < length; i++) {
@@ -18,13 +18,7 @@ function generateObject(attribute) {
                         }
                         currentObj = currentObj[arrayKey];
                         if (i === length - 1) {
-                            let value;
-                            try {
-                                value = JSON.parse(el.value);
-                            } catch (e){
-                                value = el.value;
-                            }
-                            currentObj[index] = value;
+                            currentObj[index] = el.value;
                         } else {
                             if (currentObj[index] === undefined) {
                                 currentObj[index] = {};
@@ -43,13 +37,7 @@ function generateObject(attribute) {
                             currentObj[key] = {};
                         }
                         if (i === length - 1) {
-                            let value;
-                            try {
-                                value = JSON.parse(el.value);
-                            } catch (e){
-                                value = el.value;
-                            }
-                            currentObj[key] = value;
+                            currentObj[key] = el.value;
                         } else {
                             currentObj = currentObj[key];
                         }
@@ -57,5 +45,5 @@ function generateObject(attribute) {
                 }
             });
 
-            return template;
+            return obj;
         }
