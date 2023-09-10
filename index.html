@@ -208,7 +208,7 @@
                             falsy++;
                             continue;
                         }
-                        if(!value.includes('null') && !value.includes('" "')){
+                        if(!value.includes('null') && !String(value)){
                             valid += `${key} : <b>${value}</b><br>`;
                             truthy++;
                         } else {
