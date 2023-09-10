@@ -52,14 +52,14 @@
   <body>
     <header>
       <h1>Data Sorter</h1>
-      <p>Java VO 또는 JS 객체를 입력하세요.</p>
+      <p>Java VO 또는 JS 객체를 입력하세요...</p>
       <span id="howToUse">사용 방법</span>
     </header>
     <div class="flex-container">
       <div class="flex-child">
         <label for="input">Original</label>
         
-        <label id="save">[[Save Values]]</label>
+        <label id="save">[[현재 값 저장]]</label>
         <i style="display:none;" class="fa-solid fa-check"></i>
         <label style="display:none;" id="msg"></label>
         
@@ -69,9 +69,9 @@
       <div class="flex-child">
         <label for="output">Output</label>
         <input type="checkbox" id="showInvalidValues">
-        <label for="showInvalidValues">Show Invalid Values</label>
+        <label for="showInvalidValues">유효하지 않은 값 보기</label>
         <input type="checkbox" id="zeroIsInvalid">
-        <label for="zeroIsInvalid">Zero is Invalid</label>
+        <label for="zeroIsInvalid">0인 값도 보기</label>
         <div class="area" contenteditable="false" id="output" disabled></div>
         <div id="outputCnt"></div>
       </div>
@@ -190,7 +190,7 @@
                         invalid += `${key} : <b>${value}</b><br>`;
                         falsy++;
                     }
-                } // end of for
+                } 
                 setCount(truthy,falsy);
             },
             parseObject(data){
@@ -200,7 +200,9 @@
                     data = data.substring(1, data.length-1);
                     const arr = data.split(',');
                     for(const keyValue of arr){
-                        const [key,value] = keyValue.split(':');
+                        let [key,value] = keyValue.split(':');
+                        key = key.trim().replace(/"/g,'');
+                        value = value.trim().replace(/"/g,'');
                         if(zeroIsInvalid && isZero(value)){
                             invalid += `${key} : <b>${value}</b><br>`;
                             falsy++;
@@ -269,8 +271,6 @@
             isChecked = this.checked;
             output.innerHTML = isChecked ? invalid : valid;
             setCount(truthy,falsy);
-            // const input = document.getElementById('input');
-            // convert.call(input);
         });
         document.getElementById('zeroIsInvalid').addEventListener('change',function(){
             zeroIsInvalid = this.checked;
@@ -284,7 +284,7 @@
             const checkIcon = document.querySelector('[class*=fa-check]');
             const msg = document.getElementById('msg');
             if(input.innerText){
-                msg.innerText = '저장 완료';
+                msg.innerText = '저장 완료!';
                 setVisiblity(0,true,checkIcon,msg);
                 setVisiblity(1000,false,checkIcon,msg);
                 
@@ -293,7 +293,7 @@
                 const li = createLi(saveCnt);
                 ul.insertBefore(li,del);
             } else {
-                msg.innerText = '입력값이 없습니다';
+                msg.innerText = '입력값이 없습니다!';
                 setVisiblity(0,true,msg);
                 setVisiblity(1000,false,msg);
             }
