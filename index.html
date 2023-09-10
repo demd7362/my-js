@@ -52,7 +52,7 @@
   <body>
     <header>
       <h1>Data Sorter</h1>
-      <p>Java VO 또는 JSON을 입력하세요...</p>
+      <p>Java VO 또는 JS 객체를 입력하세요.</p>
       <span id="howToUse">사용 방법</span>
     </header>
     <div class="flex-container">
@@ -68,8 +68,10 @@
       </div>
       <div class="flex-child">
         <label for="output">Output</label>
-        <input type="checkbox" id="change">
-        <label for="change">Show Invalid Values</label>
+        <input type="checkbox" id="showInvalidValues">
+        <label for="showInvalidValues">Show Invalid Values</label>
+        <input type="checkbox" id="zeroIsInvalid">
+        <label for="zeroIsInvalid">Zero is Invalid</label>
         <div class="area" contenteditable="false" id="output" disabled></div>
         <div id="outputCnt"></div>
       </div>
@@ -86,6 +88,7 @@
         let invalid = '';
         let truthy = 0;
         let falsy = 0;
+        let zeroIsInvalid = false;
         const output = document.getElementById('output');
         const input = document.getElementById('input');
         const outputCnt = document.getElementById('outputCnt');
@@ -152,11 +155,7 @@
         
         
         
-        const bracketRemover = (bracket) => {
-            const otherBracket = bracket === '(' ? ')' : '}';
-            valid = valid.substring(valid.indexOf(bracket)+1).replaceAll(otherBracket,'');
-            invalid = invalid.substring(invalid.indexOf(bracket)+1).replaceAll(otherBracket,''); 
-        }
+        
         const setDefault = () => {
             valid = '';
             invalid = '';
@@ -167,47 +166,69 @@
             inputCnt.innerHTML = `<b>${truthy+falsy}개</b>`;
             outputCnt.innerHTML = `<b>${isChecked? falsy : truthy}개</b>`;
         }
-        const checker = {
+        const isZero = (str) => {
+            const num = Number(str);
+            return num === 0;
+        }
+
+        const parser = {
             parseVO(data){
+                data = data.replace(/\b\w+VO\b/,'');
+                data = data.substring(1, data.length-1);
                 const arr = data.split(',');
-                for (const val of arr) { 
-                    const idx = val.indexOf('=');
-                    if (!val.includes('null') && val.substring(val.indexOf('=') + 1).trim()) { // 
-                        valid += `${val.substring(0,idx)} : <b>${val.substring(idx+1)}</b><br>`;
+                for (const keyValue of arr) { 
+                    const [key,value] = keyValue.split('=');
+                    if(zeroIsInvalid && isZero(value)){
+                        invalid += `${key} : <b>${value}</b><br>`;
+                        falsy++;
+                        continue;
+                    }
+                    if (!value.includes('null') && value.trim()) { 
+                        valid += `${key} : <b>${value}</b><br>`;
                         truthy++;
                     } else {
-                        invalid += `${val.substring(0,idx)} : <b>${val.substring(idx+1)}</b><br>`;
+                        invalid += `${key} : <b>${value}</b><br>`;
                         falsy++;
                     }
                 } // end of for
-                bracketRemover('(');
                 setCount(truthy,falsy);
             },
             parseObject(data){
                 try {
                     data = JSON.parse(data);
                 } catch (e){
+                    data = data.substring(1, data.length-1);
                     const arr = data.split(',');
-                    for(const val of arr){
-                        const idx = val.indexOf(':');
-                        if(!(val.includes('null') || val.includes('" "'))){
-                            valid += `${val.substring(0,idx)} : <b>${val.substring(idx+1)}</b><br>`;
+                    for(const keyValue of arr){
+                        const [key,value] = keyValue.split(':');
+                        if(zeroIsInvalid && isZero(value)){
+                            invalid += `${key} : <b>${value}</b><br>`;
+                            falsy++;
+                            continue;
+                        }
+                        if(!value.includes('null') && !value.includes('" "')){
+                            valid += `${key} : <b>${value}</b><br>`;
                             truthy++;
                         } else {
-                            invalid += `${val.substring(0,idx)} : <b>${val.substring(idx+1)}</b><br>`;
+                            invalid += `${key} : <b>${value}</b><br>`;
                             falsy++;
                         }
                     }
-                    bracketRemover('{');
                     setCount(truthy,falsy);
                     return;
                 }
-                for(const [K,V] of Object.entries(data)){     
-                    if(String(V).trim() && !String(V).includes('null')){ // 0은 falsy이기 때문에 String으로 변환
-                        valid += `${K} : <b>${V}</b><br>`;
+                
+                for(const [key,value] of Object.entries(data)){   
+                    if(zeroIsInvalid && isZero(value)){
+                        invalid += `${key} : <b>${value}</b><br>`;
+                        falsy++;
+                        continue;
+                    }
+                    if(String(key).trim() && !String(value).includes('null')){ 
+                        valid += `${key} : <b>${value}</b><br>`;
                         truthy++;
                     } else {
-                        invalid += `${K} : <b>${V}</b><br>`;
+                        invalid += `${key} : <b>${value}</b><br>`;
                         falsy++;
                     }
                 }
@@ -225,12 +246,12 @@
         }
 
         input.addEventListener('input',function(){
-            convert.call(this)
+            convert.call(this);
         });
         const convert = function() {
             setDefault();
             const key = this.innerText.includes('VO') ? 'parseVO' : 'parseObject';
-            checker[key](this.innerText);
+            parser[key](this.innerText);
             output.innerHTML = isChecked? invalid : valid;
         } 
         
@@ -244,13 +265,18 @@
         document.querySelector('img').addEventListener('click',function(){
             this.style.display = 'none';
         });
-        document.getElementById('change').addEventListener('change',function(){
+        document.getElementById('showInvalidValues').addEventListener('change',function(){
             isChecked = this.checked;
             output.innerHTML = isChecked ? invalid : valid;
             setCount(truthy,falsy);
             // const input = document.getElementById('input');
             // convert.call(input);
         });
+        document.getElementById('zeroIsInvalid').addEventListener('change',function(){
+            zeroIsInvalid = this.checked;
+            convert.call(input);
+        });
+
         
         addFontWeight(save);
 
