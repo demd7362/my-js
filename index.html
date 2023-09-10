@@ -183,7 +183,7 @@
                         falsy++;
                         continue;
                     }
-                    if (!value.includes('null') && value.trim()) { 
+                    if (!value.includes('null') && String(value).trim()) { 
                         valid += `${key} : <b>${value}</b><br>`;
                         truthy++;
                     } else {
@@ -208,7 +208,7 @@
                             falsy++;
                             continue;
                         }
-                        if(!value.includes('null') && !String(value)){
+                        if(!value.includes('null') && String(value)){
                             valid += `${key} : <b>${value}</b><br>`;
                             truthy++;
                         } else {
