@@ -173,7 +173,7 @@
 
         const parser = {
             parseVO(data){
-                data = data.replace(/\b\w+VO\b/,'');
+                data = data.replace(/\b\w+VO\b/,'').trim();
                 data = data.substring(1, data.length-1);
                 const arr = data.split(',');
                 for (const keyValue of arr) { 
@@ -183,7 +183,7 @@
                         falsy++;
                         continue;
                     }
-                    if (!value.includes('null') && String(value).trim()) { 
+                    if (!value.includes('null') && value !== ' ') { 
                         valid += `${key} : <b>${value}</b><br>`;
                         truthy++;
                     } else {
@@ -202,13 +202,12 @@
                     for(const keyValue of arr){
                         let [key,value] = keyValue.split(':');
                         key = key.trim().replace(/"/g,'');
-                        value = value.trim().replace(/"/g,'');
-                        if(zeroIsInvalid && isZero(value)){
+                        if(zeroIsInvalid && isZero(value.replace(/"/g,''))){
                             invalid += `${key} : <b>${value}</b><br>`;
                             falsy++;
                             continue;
                         }
-                        if(!value.includes('null') && value !== ''){
+                        if(!value.includes('null') && value.trim() !== '" "'){
                             valid += `${key} : <b>${value}</b><br>`;
                             truthy++;
                         } else {
