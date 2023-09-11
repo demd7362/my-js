@@ -202,14 +202,13 @@
                     for(const keyValue of arr){
                         let [key,value] = keyValue.split(':');
                         key = key.trim().replace(/"/g,'');
-                        tmpValue = value;
                         value = value.trim().replace(/"/g,'');
                         if(zeroIsInvalid && isZero(value)){
                             invalid += `${key} : <b>${value}</b><br>`;
                             falsy++;
                             continue;
                         }
-                        if(!value.includes('null') && tmpValue !== '" "'){
+                        if(!value.includes('null') && value !== ''){
                             valid += `${key} : <b>${value}</b><br>`;
                             truthy++;
                         } else {
